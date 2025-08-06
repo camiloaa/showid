@@ -19,9 +19,11 @@ An age verification system must:
 - be convenient.
 - provide age verification for different scenarios:
   adult content, safe spaces and even surveils.
-- not provide personal information to banks/advertisers.
-- allow traceability for law enforcement.
+- not provide personal information to content providers/banks/advertisers.
+  They already have your IP and fingerprinted web browser. What else do they want?
 - not allow wholesale surveillance.
+- allow traceability for law enforcement.
+  If someone was posting/downloading illegal content, it should be possible to identify them.
 
 ## Existing Alternatives
 
@@ -66,4 +68,30 @@ Cons:
 - Useless for people close to the arbitrary age limit that we are trying to enforce.
 - [Low-effort bypass](https://www.forbes.com/sites/paultassi/2025/07/31/the-uks-internet-age-verification-is-being-bypassed-by-death-stranding-2-garrys-mod/).
 
+## Solution using standard protocols
 
+### A three-party system
+
+```mermaid
+sequenceDiagram
+        actor User
+        User->>ShowID: Request age verification
+        create participant ID_Provider
+        ShowID->>ID_Provider: Request ID verification
+        ID_Provider->>User: Authenticate ID (SecretHash)
+        User->>ID_Provider: Authorize ID
+        destroy ID_Provider
+        ID_Provider->>ShowID: ID authenticated
+        ShowID->>User: New OAuth TOTP
+        create participant ContentProvider
+        User->>ContentProvider: OAuth TOTP
+        ContentProvider->>ShowID: Request age verification (TOTP)
+        ShowID->>ContentProvider: Age verified
+        destroy ContentProvider
+        ContentProvider->>User: Deliver content
+```
+
+Personal information is split between ShowID, ID_Provider, and ContentProvider.
+
+To preserve anonymity, ShowID should never log any details when verifying User's ID, nor when
+providing User's age verification.
